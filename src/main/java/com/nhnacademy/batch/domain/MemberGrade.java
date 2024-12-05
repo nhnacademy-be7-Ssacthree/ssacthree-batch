@@ -1,4 +1,4 @@
-package com.nhnacademy.batch.entity;
+package com.nhnacademy.batch.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ public class MemberGrade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long memberGradeId;
+    private Long memberGradeId;
 
     public MemberGrade(String memberGradeName, boolean memberGradeIsUsed, float memberGradePointSave) {
         this.memberGradeName = memberGradeName;
