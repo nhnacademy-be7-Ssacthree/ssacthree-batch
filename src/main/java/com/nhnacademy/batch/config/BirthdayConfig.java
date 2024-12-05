@@ -46,7 +46,7 @@ public class BirthdayConfig {
     private final DataSource dataSource; // 데이터베이스 연결 정보 설정
 
     // 매일 오전 0시 1분에 실행
-    @Scheduled(cron = "40 7 10 * * ?")
+    @Scheduled(cron = "0 1 0 * * ?")
     public void runBirthdayJob() {
         try {
             // JobParameters 생성 (중복 실행 방지를 위해 시간 추가)
