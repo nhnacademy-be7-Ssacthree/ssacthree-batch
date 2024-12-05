@@ -101,6 +101,7 @@ public class BirthdayConfig {
     }
 
     @Bean
+    @SuppressWarnings("squid:S1854")
     public ItemWriter<Member> birthdayWriter() {
         return new ItemWriter<>() {
             @Override
