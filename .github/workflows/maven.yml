@@ -37,7 +37,7 @@ jobs:
           username: ${{ secrets.SSH_ID }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "target/ssacthree-batch-0.0.1-SNAPSHOT.jar"
+          source: "target/batch-0.0.1-SNAPSHOT.jar"
           target: "~/"
           rm: false
 
