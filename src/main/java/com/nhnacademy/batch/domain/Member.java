@@ -15,4 +15,9 @@ public class Member {
     @Column(name="customer_id")
     private Long customerId;
 
+    @Column(name="member_status")
+    private String memberStatus;
+
+    @Column(name="member_birthdate")
+    private String memberBirthdate;
 }

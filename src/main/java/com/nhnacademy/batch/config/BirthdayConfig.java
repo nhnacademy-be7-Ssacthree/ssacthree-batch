@@ -6,11 +6,8 @@ import com.nhnacademy.batch.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.Chunk;
@@ -22,8 +19,6 @@ import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
@@ -35,32 +30,13 @@ import java.util.Map;
 
 @Slf4j
 @Configuration
-@EnableScheduling // 스케줄러 활성화
 @RequiredArgsConstructor
 public class BirthdayConfig {
 
-    private final JobLauncher jobLauncher; // Job 실행기
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
 
     private final DataSource dataSource; // 데이터베이스 연결 정보 설정
-
-    // 매일 오전 0시 1분에 실행
-    @Scheduled(cron = "40 7 10 * * ?")
-    public void runBirthdayJob() {
-        try {
-            // JobParameters 생성 (중복 실행 방지를 위해 시간 추가)
-            JobParameters jobParameters = new JobParametersBuilder()
-                    .addLong("timestamp", System.currentTimeMillis()) // 고유 파라미터 추가
-                    .toJobParameters();
-
-            // Job 실행
-            jobLauncher.run(birthdayJob(), jobParameters);
-            log.info("Birthday Job 실행 성공");
-        } catch (Exception e) {
-            log.error("Birthday Job 실행 중 오류 발생", e);
-        }
-    }
 
 
     @Bean
@@ -87,8 +63,11 @@ public class BirthdayConfig {
         MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();
         queryProvider.setSelectClause("SELECT customer_id");
         queryProvider.setFromClause("FROM member m");
-        queryProvider.setWhereClause("WHERE DATE_FORMAT(m.member_birthdate, '%m-%d') = DATE_FORMAT(CURRENT_DATE(), '%m-%d')\n" +
-                "  AND m.member_status = 'ACTIVE'");
+        queryProvider.setWhereClause("""
+        WHERE EXTRACT(MONTH FROM m.member_birthdate) = EXTRACT(MONTH FROM CURRENT_DATE())
+        AND EXTRACT(DAY FROM m.member_birthdate) = EXTRACT(DAY FROM CURRENT_DATE())
+        AND m.member_status = 'ACTIVE'
+        """);
         queryProvider.setSortKeys(sortKeys);
 
         return new JdbcPagingItemReaderBuilder<Member>()
@@ -111,7 +90,8 @@ public class BirthdayConfig {
                     FROM coupon c
                     INNER JOIN coupon_rule cr ON c.coupon_rule_id = cr.coupon_rule_id
                     WHERE cr.coupon_rule_name LIKE '%생일%'
-                      AND (c.coupon_expired_at > CURRENT_DATE() OR c.coupon_expired_at IS NULL)
+                    AND cr.coupon_is_used
+                    AND (c.coupon_expired_at > CURRENT_DATE() OR c.coupon_expired_at IS NULL)
                     LIMIT 1
                 """;
 
@@ -161,7 +141,8 @@ public class BirthdayConfig {
                     """;
 
                     Integer count = jdbcTemplate.queryForObject(checkExistQuery, Integer.class, member.getCustomerId(), couponId);
-                    if (count == 0) {
+                    count = count == null ? 0 : count;
+                    if (count == 0){
                         jdbcTemplate.update(insertMemberCouponQuery, member.getCustomerId(), couponId, expiredAt);
                     }
 
