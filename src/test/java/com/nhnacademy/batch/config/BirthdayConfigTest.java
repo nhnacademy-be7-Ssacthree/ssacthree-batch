@@ -66,7 +66,7 @@ class BirthdayConfigTest {
         // Writer가 정상적으로 작동했는지 확인
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM member_coupon WHERE customer_id = 1", Integer.class);
-        assertThat(count).isGreaterThan(0);
+        assertThat(count).isPositive();
     }
 
     @Test
