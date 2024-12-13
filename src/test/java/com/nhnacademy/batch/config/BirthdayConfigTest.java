@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @SpringBatchTest
 @ActiveProfiles("test")
@@ -120,8 +119,6 @@ class BirthdayConfigTest {
         assertThat(member).isNotNull();
         assertThat(member.getCustomerId()).isEqualTo(1L);
     }
-
-
 
 
 
